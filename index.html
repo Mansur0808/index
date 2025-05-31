@@ -1,41 +1,34 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Загрузка фото</title>
-</head>
-<body>
-  <h2>Загрузить фото в мой Google Drive</h2>
-  <input type="file" id="fileInput">
-  <input type="text" id="username" placeholder="Ваше имя">
-  <button onclick="uploadFile()">Загрузить</button>
+  <body>
+    <input type="file" id="fileInput">
+    <input type="text" id="username" placeholder="Ваше имя">
+    <button onclick="upload()">Загрузить</button>
+    <p id="result"></p>
 
-  <p id="status"></p>
+    <script>
+      async function upload() {
+        const fileInput = document.getElementById('fileInput');
+        const username = document.getElementById('username').value;
+        if (!fileInput.files[0]) return alert('Выберите файл');
 
-  <script>
-    async function uploadFile() {
-      const file = document.getElementById('fileInput').files[0];
-      const username = document.getElementById('username').value;
-      if (!file || !username) return alert("Выберите файл и введите имя");
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64 = reader.result.split(',')[1];
+          const body = new URLSearchParams();
+          body.append("file", base64);
+          body.append("filename", fileInput.files[0].name);
+          body.append("username", username);
 
-      const reader = new FileReader();
-      reader.onload = async function () {
-        const base64 = reader.result.split(',')[1];
+          const res = await fetch("ВАШ_URL_СКРИПТА", {
+            method: "POST",
+            body,
+          });
 
-        const formData = new URLSearchParams();
-        formData.append("file", base64);
-        formData.append("filename", file.name);
-        formData.append("username", username);
-
-        const response = await fetch('https://script.google.com/macros/s/AKfycbwUJmVuma54cxLZa8fUirdQcxbVlONfJPlmDSUG0RWgeYTHAkDITDVLj8Hv3RNzQDAH/exec', {
-          method: 'POST',
-          body: formData,
-        });
-
-        const text = await response.text();
-        document.getElementById('status').innerText = text;
-      };
-      reader.readAsDataURL(file);
-    }
-  </script>
-</body>
+          document.getElementById('result').textContent = await res.text();
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      }
+    </script>
+  </body>
 </html>
